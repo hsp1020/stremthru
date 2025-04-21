@@ -18,6 +18,7 @@ import (
 	"github.com/MunifTanjim/stremthru/store/pikpak"
 	"github.com/MunifTanjim/stremthru/store/premiumize"
 	"github.com/MunifTanjim/stremthru/store/realdebrid"
+	"github.com/MunifTanjim/stremthru/store/seedr"
 	"github.com/MunifTanjim/stremthru/store/torbox"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -44,6 +45,9 @@ var rdStore = realdebrid.NewStoreClient(&realdebrid.StoreClientConfig{
 	HTTPClient: config.GetHTTPClient(config.StoreTunnel.GetTypeForAPI("realdebrid")),
 	UserAgent:  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
 })
+var srStore = seedr.NewStoreClient(&seedr.StoreClientConfig{
+	HTTPClient: config.GetHTTPClient(config.StoreTunnel.GetTypeForAPI("seedr")),
+})
 var tbStore = torbox.NewStoreClient(&torbox.StoreClientConfig{
 	HTTPClient: config.GetHTTPClient(config.StoreTunnel.GetTypeForAPI("torbox")),
 })
@@ -64,6 +68,8 @@ func GetStore(name string) store.Store {
 		return pmStore
 	case store.StoreNameRealDebrid:
 		return rdStore
+	case store.StoreNameSeedr:
+		return srStore
 	case store.StoreNameTorBox:
 		return tbStore
 	default:

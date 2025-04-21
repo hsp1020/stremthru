@@ -19,6 +19,7 @@ const (
 	StoreNamePikPak     StoreName = "pikpak"
 	StoreNamePremiumize StoreName = "premiumize"
 	StoreNameRealDebrid StoreName = "realdebrid"
+	StoreNameSeedr      StoreName = "seedr"
 	StoreNameTorBox     StoreName = "torbox"
 )
 
@@ -32,6 +33,7 @@ const (
 	StoreCodePikPak     StoreCode = "pp"
 	StoreCodePremiumize StoreCode = "pm"
 	StoreCodeRealDebrid StoreCode = "rd"
+	StoreCodeSeedr      StoreCode = "sr"
 	StoreCodeTorBox     StoreCode = "tb"
 )
 
@@ -43,6 +45,7 @@ var storeCodeByName = map[StoreName]StoreCode{
 	StoreNamePikPak:     StoreCodePikPak,
 	StoreNamePremiumize: StoreCodePremiumize,
 	StoreNameRealDebrid: StoreCodeRealDebrid,
+	StoreNameSeedr:      StoreCodeSeedr,
 	StoreNameTorBox:     StoreCodeTorBox,
 }
 
@@ -54,6 +57,7 @@ var storeNameByCode = map[StoreCode]StoreName{
 	StoreCodePikPak:     StoreNamePikPak,
 	StoreCodePremiumize: StoreNamePremiumize,
 	StoreCodeRealDebrid: StoreNameRealDebrid,
+	StoreCodeSeedr:      StoreNameSeedr,
 	StoreCodeTorBox:     StoreNameTorBox,
 }
 

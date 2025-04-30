@@ -66,6 +66,7 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 	contentType := r.PathValue("contentType")
 	isStremThruStoreId := isStoreId(videoIdWithLink)
 	isImdbId := strings.HasPrefix(videoIdWithLink, "tt")
+	isKitsuId := strings.HasPrefix(videoIdWithLink, "kitsu")
 	if isStremThruStoreId {
 		if contentType != ContentTypeOther {
 			shared.ErrorBadRequest(r, "unsupported type: "+contentType).Send(w, r)
@@ -73,6 +74,11 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if isImdbId {
 		if contentType != string(stremio.ContentTypeMovie) && contentType != string(stremio.ContentTypeSeries) {
+			shared.ErrorBadRequest(r, "unsupported type: "+contentType).Send(w, r)
+			return
+		}
+	} else if isKitsuId {
+		if contentType != string(stremio.ContentTypeSeries) {
 			shared.ErrorBadRequest(r, "unsupported type: "+contentType).Send(w, r)
 			return
 		}
@@ -135,7 +141,7 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	if isImdbId {
+	if isImdbId || isKitsuId {
 		sType, sId := "", ""
 		sType, sId, season, episode = parseStremId(videoIdWithLink)
 		mres, err := fetchMeta(sType, sId, core.GetRequestIP(r))
@@ -353,7 +359,10 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 					for i := range meta.Videos {
 						video := &meta.Videos[i]
 						if video.Season == season && video.Episode == episode {
-							pttr.Title = video.Name
+							pttr.Title = video.Title
+							if pttr.Title == "" {
+								pttr.Title = video.Name
+							}
 							break
 						}
 					}

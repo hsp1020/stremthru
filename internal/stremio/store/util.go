@@ -49,6 +49,10 @@ func parseStremId(sid string) (sType, sId string, season, episode int) {
 			if errS == nil && errEp == nil {
 				season = intS
 				episode = intEp
+				if sId == "kitsu" {
+					sId += ":" + strS
+					season = 1
+				}
 			}
 		}
 	} else {

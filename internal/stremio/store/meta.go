@@ -33,6 +33,14 @@ var cinemetaBaseUrl = func() *url.URL {
 	return url
 }()
 
+var animeKitsuBaseUrl = func() *url.URL {
+	url, err := url.Parse("https://anime-kitsu.strem.fun/")
+	if err != nil {
+		panic(err)
+	}
+	return url
+}()
+
 var metaCache = cache.NewCache[stremio.MetaHandlerResponse](&cache.CacheConfig{
 	Lifetime: 2 * time.Hour,
 	Name:     "stremio:store:catalog",
@@ -40,16 +48,20 @@ var metaCache = cache.NewCache[stremio.MetaHandlerResponse](&cache.CacheConfig{
 
 var fetchMetaGroup singleflight.Group
 
-func fetchMeta(sType, imdbId, clientIp string) (stremio.MetaHandlerResponse, error) {
+func fetchMeta(sType, sId, clientIp string) (stremio.MetaHandlerResponse, error) {
 	var meta stremio.MetaHandlerResponse
 
-	cacheKey := sType + ":" + imdbId
+	cacheKey := sType + ":" + sId
 	if !metaCache.Get(cacheKey, &meta) {
 		m, err, _ := fetchMetaGroup.Do(cacheKey, func() (any, error) {
+			baseUrl := cinemetaBaseUrl
+			if strings.HasPrefix(sId, "kitsu") {
+				baseUrl = animeKitsuBaseUrl
+			}
 			r, err := client.FetchMeta(&stremio_addon.FetchMetaParams{
-				BaseURL:  cinemetaBaseUrl,
+				BaseURL:  baseUrl,
 				Type:     sType,
-				Id:       imdbId + ".json",
+				Id:       sId + ".json",
 				ClientIP: clientIp,
 			})
 			return r.Data, err

@@ -66,6 +66,11 @@ type MetaVideo struct {
 	Description string      `json:"description,omitempty"`
 	Number      int         `json:"number,omitempty"` // episode
 	FirstAired  *time.Time  `json:"firstAired,omitempty"`
+
+	// anime-kitsu.strem.fun
+	IMDBId      string `json:"imdb_id,omitempty"`
+	IMDBSeason  int    `json:"imdbSeason,omitempty"`
+	IMDBEpisode int    `json:"imdbEpisode,omitempty"`
 }
 
 type MetaBehaviorHints struct {

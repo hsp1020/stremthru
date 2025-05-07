@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.71.0](https://github.com/MunifTanjim/stremthru/compare/0.70.10...0.71.0) (2025-05-07)
+
+
+### Features
+
+* **stremio/sidekick:** support renaming catalogs ([d746ac5](https://github.com/MunifTanjim/stremthru/commit/d746ac5744c8d52b2438da76e121fadf900dfd35))
+
 ## [0.70.10](https://github.com/MunifTanjim/stremthru/compare/0.70.9...0.70.10) (2025-05-06)
 
 

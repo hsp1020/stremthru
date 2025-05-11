@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.72.0](https://github.com/MunifTanjim/stremthru/compare/0.71.0...0.72.0) (2025-05-11)
+
+
+### Features
+
+* **imdb_title:** support incremental sync ([d581386](https://github.com/MunifTanjim/stremthru/commit/d581386b9d2dd6c4de918fbb0c2ceecc05b262a6))
+
 ## [0.71.0](https://github.com/MunifTanjim/stremthru/compare/0.70.10...0.71.0) (2025-05-10)
 
 

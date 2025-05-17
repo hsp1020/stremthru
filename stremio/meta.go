@@ -143,7 +143,7 @@ type Meta struct {
 	ReleaseInfo   string             `json:"releaseInfo,omitempty"`
 	Director      []string           `json:"director,omitempty"` // warning: this will soon be deprecated in favor of `links`
 	Cast          []string           `json:"cast,omitempty"`     // warning: this will soon be deprecated in favor of `links`
-	IMDBRating    string             `json:"imdbRating,omitempty"`
+	IMDBRating    Number             `json:"imdbRating,omitempty"`
 	Released      *time.Time         `json:"released,omitempty"`
 	Trailers      []MetaTrailer      `json:"trailers,omitempty"` // warning: this will soon be deprecated in favor of `trailers`
 	Links         []MetaLink         `json:"links,omitempty"`

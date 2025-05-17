@@ -277,6 +277,18 @@ func parseStoreContentCachedStaleTime(staleTimeConfig string) (staleTimeMap stor
 	return staleTimeMap, nil
 }
 
+type IntegrationMapDebridio struct {
+	APIKey string
+}
+
+func (imd IntegrationMapDebridio) IsAvailable() bool {
+	return imd.APIKey != ""
+}
+
+type integrationMap struct {
+	Debridio IntegrationMapDebridio
+}
+
 type Config struct {
 	LogLevel  slog.Level
 	LogFormat string
@@ -302,6 +314,7 @@ type Config struct {
 	StoreContentCachedStaleTime storeContentCachedStaleTimeMap
 	StoreClientUserAgent        string
 	ContentProxyConnectionLimit ContentProxyConnectionLimitMap
+	Integration                 integrationMap
 	IP                          *IPResolver
 
 	DataDir string
@@ -459,6 +472,12 @@ var config = func() Config {
 		log.Fatalf("failed to parse store content cached stale time: %v", err)
 	}
 
+	integration := integrationMap{
+		Debridio: IntegrationMapDebridio{
+			APIKey: getEnv("STREMTHRU_INTEGRATION_DEBRIDIO_API_KEY"),
+		},
+	}
+
 	return Config{
 		LogLevel:  logLevel,
 		LogFormat: logFormat,
@@ -484,7 +503,9 @@ var config = func() Config {
 		StoreContentCachedStaleTime: storeContentCachedStaleTimeMap,
 		StoreClientUserAgent:        getEnv("STREMTHRU_STORE_CLIENT_USER_AGENT"),
 		ContentProxyConnectionLimit: contentProxyConnectionMap,
-		IP:                          &IPResolver{},
+		Integration:                 integration,
+
+		IP: &IPResolver{},
 
 		DataDir: dataDir,
 	}
@@ -514,6 +535,7 @@ var StoreContentProxy = config.StoreContentProxy
 var StoreContentCachedStaleTime = config.StoreContentCachedStaleTime
 var StoreClientUserAgent = config.StoreClientUserAgent
 var ContentProxyConnectionLimit = config.ContentProxyConnectionLimit
+var Integration = config.Integration
 var InstanceId = strings.ReplaceAll(uuid.NewString(), "-", "")
 var IP = config.IP
 

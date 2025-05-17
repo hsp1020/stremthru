@@ -66,12 +66,13 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 	contentType := r.PathValue("contentType")
 	isStremThruStoreId := isStoreId(videoIdWithLink)
 	isImdbId := strings.HasPrefix(videoIdWithLink, "tt")
+	isTvdbId := strings.HasPrefix(videoIdWithLink, tvdbIdPrefix)
 	if isStremThruStoreId {
 		if contentType != ContentTypeOther {
 			shared.ErrorBadRequest(r, "unsupported type: "+contentType).Send(w, r)
 			return
 		}
-	} else if isImdbId {
+	} else if isImdbId || isTvdbId {
 		if contentType != string(stremio.ContentTypeMovie) && contentType != string(stremio.ContentTypeSeries) {
 			shared.ErrorBadRequest(r, "unsupported type: "+contentType).Send(w, r)
 			return
@@ -136,6 +137,98 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if isImdbId {
+		sType, sId := "", ""
+		sType, sId, season, episode = parseStremId(videoIdWithLink)
+		mres, err := fetchMeta(sType, sId, core.GetRequestIP(r))
+		if err != nil {
+			SendError(w, r, err)
+			return
+		}
+		meta = &mres.Meta
+
+		var wg sync.WaitGroup
+
+		idPrefixes := ud.getIdPrefixes()
+		errs := make([]error, len(idPrefixes))
+		matcherResults := make([][]StreamFileMatcher, len(idPrefixes))
+
+		for idx, idPrefix := range idPrefixes {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+
+				idr, err := parseId(idPrefix)
+				if err != nil {
+					errs[idx] = err
+					return
+				}
+				ctx, err := ud.GetRequestContext(r, idr)
+				if err != nil || ctx.Store == nil {
+					if err != nil {
+						LogError(r, "failed to get request context", err)
+					}
+					errs[idx] = shared.ErrorBadRequest(r, "")
+					return
+				}
+
+				items := getCatalogItems(ctx.Store, ctx.StoreAuthToken, ctx.ClientIP, idPrefix, idr)
+				if meta.Name != "" {
+					query := strings.ToLower(meta.Name)
+					filteredItems := []CachedCatalogItem{}
+					for i := range items {
+						item := &items[i]
+						if fuzzy.TokenSetRatio(query, strings.ToLower(item.Name), false, true) > 90 {
+							filteredItems = append(filteredItems, *item)
+						}
+					}
+					items = filteredItems
+				}
+
+				for i := range items {
+					item := &items[i]
+					id := strings.TrimPrefix(item.Id, idPrefix)
+					if sType == "series" {
+						matcherResults[idx] = append(matcherResults[idx], StreamFileMatcher{
+							MagnetId: id,
+							Season:   season,
+							Episode:  episode,
+
+							IdPrefix:   idPrefix,
+							IdR:        idr,
+							Store:      ctx.Store,
+							StoreCode:  idr.getStoreCode(),
+							StoreToken: ctx.StoreAuthToken,
+							ClientIP:   ctx.ClientIP,
+						})
+					} else {
+						matcherResults[idx] = append(matcherResults[idx], StreamFileMatcher{
+							MagnetId:       id,
+							UseLargestFile: true,
+
+							IdPrefix:   idPrefix,
+							IdR:        idr,
+							Store:      ctx.Store,
+							StoreCode:  idr.getStoreCode(),
+							StoreToken: ctx.StoreAuthToken,
+							ClientIP:   ctx.ClientIP,
+						})
+					}
+				}
+			}()
+		}
+		wg.Wait()
+		for _, err := range errs {
+			if err != nil {
+				SendError(w, r, err)
+				return
+			}
+		}
+		for i := range matcherResults {
+			matchers = append(matchers, matcherResults[i]...)
+		}
+	}
+
+	if isTvdbId {
 		sType, sId := "", ""
 		sType, sId, season, episode = parseStremId(videoIdWithLink)
 		mres, err := fetchMeta(sType, sId, core.GetRequestIP(r))

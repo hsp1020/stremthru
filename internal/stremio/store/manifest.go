@@ -30,6 +30,8 @@ var logoByStoreCode = map[string]string{
 	"tb": "https://torbox.app/android-chrome-192x192.png",
 }
 
+const tvdbIdPrefix = "tvdb:"
+
 func getManifestCatalog(code string, hideCatalog bool) stremio.Catalog {
 	return stremio.Catalog{
 		Id:   getCatalogId(code),
@@ -127,7 +129,11 @@ func GetManifest(r *http.Request, ud *UserData) *stremio.Manifest {
 		IDPrefixes: idPrefixes,
 	}
 	if !ud.HideStream {
-		streamResource.IDPrefixes = append([]string{"tt"}, idPrefixes...)
+		streamIdPrefixes := []string{"tt"}
+		if config.Integration.Debridio.IsAvailable() {
+			streamIdPrefixes = append(streamIdPrefixes, tvdbIdPrefix)
+		}
+		streamResource.IDPrefixes = append(streamIdPrefixes, idPrefixes...)
 		streamResource.Types = append(streamResource.Types, stremio.ContentTypeMovie, stremio.ContentTypeSeries)
 	}
 

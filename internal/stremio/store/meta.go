@@ -1,6 +1,7 @@
 package stremio_store
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	"github.com/MunifTanjim/go-ptt"
 	"github.com/MunifTanjim/stremthru/core"
 	"github.com/MunifTanjim/stremthru/internal/cache"
+	"github.com/MunifTanjim/stremthru/internal/config"
 	"github.com/MunifTanjim/stremthru/internal/shared"
 	stremio_addon "github.com/MunifTanjim/stremthru/internal/stremio/addon"
 	stremio_store_webdl "github.com/MunifTanjim/stremthru/internal/stremio/store/webdl"
@@ -34,6 +36,14 @@ var cinemetaBaseUrl = func() *url.URL {
 	return url
 }()
 
+var debridioTVDBBaseUrl = func() *url.URL {
+	url, err := url.Parse("https://tvdb-addon.debridio.com/")
+	if err != nil {
+		panic(err)
+	}
+	return url
+}()
+
 var metaCache = cache.NewCache[stremio.MetaHandlerResponse](&cache.CacheConfig{
 	Lifetime: 2 * time.Hour,
 	Name:     "stremio:store:catalog",
@@ -41,24 +51,44 @@ var metaCache = cache.NewCache[stremio.MetaHandlerResponse](&cache.CacheConfig{
 
 var fetchMetaGroup singleflight.Group
 
-func fetchMeta(sType, imdbId, clientIp string) (stremio.MetaHandlerResponse, error) {
+func fetchMeta(sType, sId, clientIp string) (stremio.MetaHandlerResponse, error) {
 	var meta stremio.MetaHandlerResponse
 
-	cacheKey := sType + ":" + imdbId
+	cacheKey := sType + ":" + sId
 	if !metaCache.Get(cacheKey, &meta) {
-		m, err, _ := fetchMetaGroup.Do(cacheKey, func() (any, error) {
-			r, err := client.FetchMeta(&stremio_addon.FetchMetaParams{
-				BaseURL:  cinemetaBaseUrl,
-				Type:     sType,
-				Id:       imdbId + ".json",
-				ClientIP: clientIp,
+		switch {
+		case strings.HasPrefix(sId, "tt"):
+			m, err, _ := fetchMetaGroup.Do(cacheKey, func() (any, error) {
+				r, err := client.FetchMeta(&stremio_addon.FetchMetaParams{
+					BaseURL:  cinemetaBaseUrl,
+					Type:     sType,
+					Id:       sId + ".json",
+					ClientIP: clientIp,
+				})
+				return r.Data, err
 			})
-			return r.Data, err
-		})
-		if err != nil {
-			return meta, err
+			if err != nil {
+				return meta, err
+			}
+			meta = m.(stremio.MetaHandlerResponse)
+		case config.Integration.Debridio.IsAvailable() && strings.HasPrefix(sId, tvdbIdPrefix):
+			m, err, _ := fetchMetaGroup.Do(cacheKey, func() (any, error) {
+				r, err := client.FetchMeta(&stremio_addon.FetchMetaParams{
+					BaseURL:  debridioTVDBBaseUrl.JoinPath(config.Integration.Debridio.APIKey),
+					Type:     sType,
+					Id:       sId + ".json",
+					ClientIP: clientIp,
+				})
+				return r.Data, err
+			})
+			if err != nil {
+				return meta, err
+			}
+			meta = m.(stremio.MetaHandlerResponse)
+		default:
+			return meta, errors.New("unsupported strem id: " + sId)
+
 		}
-		meta = m.(stremio.MetaHandlerResponse)
 		metaCache.Add(cacheKey, meta)
 	}
 

@@ -20,7 +20,7 @@ func mediaTypeToResourceType(mediaType mdblist.MediaType) stremio.ContentType {
 	case mdblist.MediaTypeShow:
 		return stremio.ContentTypeSeries
 	default:
-		return "other"
+		return stremio.ContentTypeMovie
 	}
 }
 

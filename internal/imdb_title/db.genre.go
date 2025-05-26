@@ -76,36 +76,47 @@ var query_record_genre_after_values = fmt.Sprintf(
 )
 
 func recordGenre(tx *db.Tx, metas []IMDBTitleMeta) error {
-	count := len(metas)
-	if count == 0 {
-		return nil
-	}
+    // 1. 입력 검증
+    if len(metas) == 0 {
+        return nil
+    }
 
-	cleanupArgs := make([]any, 0, count)
+    // 2. 데이터 준비
+    cleanupArgs := make([]any, 0, len(metas))
+    args := make([]any, 0, len(metas)*2) // 장르당 2개 값(TId, genre)
 
-	args := make([]any, 0, count*2)
+    for i := range metas {
+        meta := &metas[i]
+        if len(meta.Genres) > 0 {
+            cleanupArgs = append(cleanupArgs, meta.TId)
+            for _, genre := range meta.Genres {
+                args = append(args, meta.TId, genre)
+            }
+        }
+    }
 
-	for i := range metas {
-		meta := &metas[i]
-		if len(meta.Genres) > 0 {
-			cleanupArgs = append(cleanupArgs, meta.TId)
-		}
-		for _, genre := range meta.Genres {
-			args = append(args, meta.TId, genre)
-		}
-	}
+    // 3. cleanup 쿼리 실행 (필요한 경우만)
+    if len(cleanupArgs) > 0 {
+        cleanupQuery := query_record_genre_cleanup + "(" + util.RepeatJoin("?", len(cleanupArgs), ",") + ")"
+        if _, err := tx.Exec(cleanupQuery, cleanupArgs...); err != nil {
+            return fmt.Errorf("genre cleanup failed: %w", err)
+        }
+    }
 
-	cleanupQuery := query_record_genre_cleanup + "(" + util.RepeatJoin("?", len(cleanupArgs), ",") + ")"
+    // 4. 장르 삽입 쿼리 실행 (필요한 경우만)
+    if len(args) > 0 {
+        if len(args)%2 != 0 {
+            return fmt.Errorf("invalid args length: must be even (got %d)", len(args))
+        }
+        
+        query := query_record_genre_before_values +
+            util.RepeatJoin(query_record_genre_value_placeholder, len(args)/2, ",") +
+            query_record_genre_after_values
+            
+        if _, err := tx.Exec(query, args...); err != nil {
+            return fmt.Errorf("genre insert failed: %w", err)
+        }
+    }
 
-	if _, err := tx.Exec(cleanupQuery, cleanupArgs...); err != nil {
-		return err
-	}
-
-	query := query_record_genre_before_values +
-		util.RepeatJoin(query_record_genre_value_placeholder, len(args)/2, ",") +
-		query_record_genre_after_values
-
-	_, err := tx.Exec(query, args...)
-
-	return err
+    return nil
 }

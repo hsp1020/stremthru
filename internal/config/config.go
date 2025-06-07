@@ -152,25 +152,27 @@ const (
 )
 
 const (
+	FeatureAnime           string = "anime"
 	FeatureDMMHashlist     string = "dmm_hashlist"
 	FeatureIMDBTitle       string = "imdb_title"
 	FeatureStremioList     string = "stremio_list"
+	FeatureStremioP2P      string = "stremio_p2p"
 	FeatureStremioSidekick string = "stremio_sidekick"
 	FeatureStremioStore    string = "stremio_store"
 	FeatureStremioTorz     string = "stremio_torz"
 	FeatureStremioWrap     string = "stremio_wrap"
-	FeatureAnime           string = "anime"
 )
 
 var features = []string{
+	FeatureAnime,
 	FeatureDMMHashlist,
 	FeatureIMDBTitle,
 	FeatureStremioList,
+	FeatureStremioP2P,
 	FeatureStremioSidekick,
 	FeatureStremioStore,
-	FeatureStremioWrap,
 	FeatureStremioTorz,
-	FeatureAnime,
+	FeatureStremioWrap,
 }
 
 type FeatureConfig struct {
@@ -398,7 +400,7 @@ var config = func() Config {
 	databaseUri := getEnv("STREMTHRU_DATABASE_URI")
 
 	feature := FeatureConfig{
-		disabled: []string{FeatureAnime},
+		disabled: []string{FeatureAnime, FeatureStremioP2P},
 	}
 	for _, name := range strings.FieldsFunc(strings.TrimSpace(getEnv("STREMTHRU_FEATURE")), func(c rune) bool {
 		return c == ','
@@ -496,7 +498,7 @@ var config = func() Config {
 		RedisURI:                    getEnv("STREMTHRU_REDIS_URI"),
 		DatabaseURI:                 databaseUri,
 		Feature:                     feature,
-		Version:                     "0.77.2", // x-release-please-version
+		Version:                     "0.78.2", // x-release-please-version
 		LandingPage:                 getEnv("STREMTHRU_LANDING_PAGE"),
 		ServerStartTime:             time.Now(),
 		StoreContentProxy:           storeContentProxyMap,
@@ -553,17 +555,19 @@ type AppState struct {
 }
 
 func PrintConfig(state *AppState) {
-	hasTunnel := false
-	if proxy := Tunnel.getProxy("*"); proxy != nil && proxy.Host != "" {
-		hasTunnel = true
-	}
+	hasTunnel := Tunnel.hasProxy()
+	defaultProxyHost := Tunnel.GetDefaultProxyHost()
 
 	machineIP := IP.GetMachineIP()
 	var tunnelIpByProxyHost map[string]string
 	if hasTunnel {
 		ipMap, err := IP.GetTunnelIPByProxyHost()
 		if err != nil {
-			log.Panicf("Failed to resolve Tunnel IP Map: %v\n", err)
+			if defaultProxyHost != "" && ipMap[defaultProxyHost] == "" {
+				log.Panicf("Failed to resolve Tunnel IP Map: %v\n", err)
+			} else {
+				log.Printf("Failed to resolve Tunnel IP Map: %v\n\n", err)
+			}
 		}
 		tunnelIpByProxyHost = ipMap
 	}
@@ -582,7 +586,7 @@ func PrintConfig(state *AppState) {
 
 	if hasTunnel {
 		l.Println(" Tunnel:")
-		if defaultProxy := Tunnel.getProxy("*"); defaultProxy != nil {
+		if defaultProxy := Tunnel.getProxy("*"); defaultProxy != nil && defaultProxy.Host != "" {
 			defaultProxyConfig := ""
 			if noProxy := getEnv("NO_PROXY"); noProxy == "*" {
 				defaultProxyConfig = " (disabled)"
@@ -599,7 +603,9 @@ func PrintConfig(state *AppState) {
 				}
 
 				if proxy.Host == "" {
-					l.Println("     " + hostname + ": (disabled)")
+					if defaultProxyHost != "" {
+						l.Println("     " + hostname + ": (disabled)")
+					}
 				} else {
 					l.Println("     " + hostname + ": " + proxy.Redacted())
 				}
@@ -613,6 +619,9 @@ func PrintConfig(state *AppState) {
 	if hasTunnel {
 		l.Println("  Tunnel IP: ")
 		for proxyHost, tunnelIp := range tunnelIpByProxyHost {
+			if tunnelIp == "" {
+				tunnelIp = "(unresolved)"
+			}
 			l.Println("    [" + proxyHost + "]: " + tunnelIp)
 		}
 	}
@@ -733,7 +742,7 @@ func PrintConfig(state *AppState) {
 	l.Println()
 
 	l.Println(" Integrations:")
-	for _, integration := range []string{"anilist.co", "trakt.tv"} {
+	for _, integration := range []string{"anilist.co", "trakt.tv", "kitsu.app"} {
 		switch integration {
 		case "anilist.co":
 			disabled := ""
@@ -741,6 +750,22 @@ func PrintConfig(state *AppState) {
 				disabled = " (disabled)"
 			}
 			l.Println("   - " + integration + disabled)
+		case "kitsu.app":
+			disabled := ""
+			if !Feature.IsEnabled(FeatureAnime) || !Integration.Kitsu.HasDefaultCredentials() {
+				disabled = " (disabled)"
+			}
+			l.Println("   - " + integration + disabled)
+			if disabled == "" {
+				if Integration.Kitsu.ClientId != "" {
+					l.Println("           client_id: " + Integration.Kitsu.ClientId[0:3] + "..." + Integration.Kitsu.ClientId[len(Integration.Trakt.ClientId)-3:])
+				}
+				if Integration.Kitsu.ClientSecret != "" {
+					l.Println("       client_secret: " + Integration.Kitsu.ClientSecret[0:3] + "..." + Integration.Kitsu.ClientSecret[len(Integration.Trakt.ClientSecret)-3:])
+				}
+				l.Println("               email: " + Integration.Kitsu.Email)
+				l.Println("            password: " + "*******")
+			}
 		case "trakt.tv":
 			disabled := ""
 			if !Integration.Trakt.IsEnabled() {

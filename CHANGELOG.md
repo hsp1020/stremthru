@@ -1,5 +1,60 @@
 # Changelog
 
+## [0.78.2](https://github.com/MunifTanjim/stremthru/compare/0.78.1...0.78.2) (2025-06-07)
+
+
+### Bug Fixes
+
+* **torznab:** parse query param names as case-insensitive ([dc91b56](https://github.com/MunifTanjim/stremthru/commit/dc91b561e5b17be0d75ea26fa0c23ed246a8bc31))
+* **torznab:** remove tt prefix from imdb attr in response ([93bbe74](https://github.com/MunifTanjim/stremthru/commit/93bbe74d114836e47c0a7d1d9b278c8a140e77ee))
+* **torznab:** respect limit and offset query ([0f2f99b](https://github.com/MunifTanjim/stremthru/commit/0f2f99bea398b1f589fd790dd8ad34255e660992))
+* **torznab:** use correct type for magnet uri enclosure ([44bfa49](https://github.com/MunifTanjim/stremthru/commit/44bfa494bf4d8c8992f3f62d0a8110ca82e57ef8))
+* **torznab:** use proper capabilities response ([1781d15](https://github.com/MunifTanjim/stremthru/commit/1781d15c1a6354f61afaec8c1901c56cb5babcff))
+
+## [0.78.1](https://github.com/MunifTanjim/stremthru/compare/0.78.0...0.78.1) (2025-06-07)
+
+
+### Bug Fixes
+
+* **torznab:** support imdbid without tt prefix ([57eb3b5](https://github.com/MunifTanjim/stremthru/commit/57eb3b5ea4e45f3e945488a7b56052864c173170))
+
+## [0.78.0](https://github.com/MunifTanjim/stremthru/compare/0.77.4...0.78.0) (2025-06-07)
+
+
+### Features
+
+* **animeapi:** sync mapping dataset ([24fa5fb](https://github.com/MunifTanjim/stremthru/commit/24fa5fbe3aa2892e89ba028eecd5a75ab8ef900e))
+* **kitsu:** add integration ([cb170e2](https://github.com/MunifTanjim/stremthru/commit/cb170e28b6d56c5889d206665d5a0237dea69ced))
+* **stremio/list:** add mdblist watchlist example ([d35c13b](https://github.com/MunifTanjim/stremthru/commit/d35c13ba884b4cdcd0110d597b137ae8ad5a6d8d))
+* **stremio/list:** support mdblist watchlist ([cca70c2](https://github.com/MunifTanjim/stremthru/commit/cca70c23b45bedfdb9f79042d4a7e813735d1d8a))
+* **stremio/torz:** support p2p stream ([ad721da](https://github.com/MunifTanjim/stremthru/commit/ad721daf9b466ec2250b5b7a2c06bf4a8a76b287))
+
+
+### Bug Fixes
+
+* **config:** do not panic on non-default non-responsive http proxy ([4f92e2b](https://github.com/MunifTanjim/stremthru/commit/4f92e2bc3ad6b4b926c7049d872df061d0adc7ce))
+
+## [0.77.4](https://github.com/MunifTanjim/stremthru/compare/0.77.3...0.77.4) (2025-06-04)
+
+
+### Bug Fixes
+
+* **anime:** fix GetIdMapsForAniList query for postgresql ([f1576dd](https://github.com/MunifTanjim/stremthru/commit/f1576ddb6cb93eb25765daa3749296652c6f707b))
+* **oauth:** handle missing oauth token ([1e21726](https://github.com/MunifTanjim/stremthru/commit/1e21726fba76d1d91a08922fde23edea83955fbf))
+* **stremio/list:** preserve trakt.tv urls when auth expired/revoked ([c3fdeac](https://github.com/MunifTanjim/stremthru/commit/c3fdeacc4434428cac6d7a4fa32b7def7362b0c1))
+* **trakt:** fix db queries for postgresql ([70bc3ce](https://github.com/MunifTanjim/stremthru/commit/70bc3ce85623467b4d83187236968ab9d9accb25))
+* **trakt:** use fallback when period is missing ([0c1809a](https://github.com/MunifTanjim/stremthru/commit/0c1809a19ce2babab60ac1c23a814aaa1abc26fb))
+
+## [0.77.3](https://github.com/MunifTanjim/stremthru/compare/0.77.2...0.77.3) (2025-06-03)
+
+
+### Bug Fixes
+
+* **dmm_hashlist:** ignore invalid magnet hash ([0bf142e](https://github.com/MunifTanjim/stremthru/commit/0bf142e26d0f37545677b94bc9819ba315a7cdf3))
+* **oauth:** fix save token query for postgresql ([a364ee4](https://github.com/MunifTanjim/stremthru/commit/a364ee4965a4370bbde01ef48ab91c2b5803ae6f))
+* **store/premiumize:** fix 414 uri too long error for check magnet ([4672111](https://github.com/MunifTanjim/stremthru/commit/46721117858b47d3e88b04ffffe4599859fd6024))
+* **torrent_info:** ignore invalid magnet hash ([ff6b5b0](https://github.com/MunifTanjim/stremthru/commit/ff6b5b00f62f0ef06b134677cf1f29c21aad1aa3))
+
 ## [0.77.2](https://github.com/MunifTanjim/stremthru/compare/0.77.1...0.77.2) (2025-06-02)
 
 

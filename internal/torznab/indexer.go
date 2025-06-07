@@ -251,6 +251,14 @@ func (sti stremThruIndexer) Search(q Query) ([]ResultItem, error) {
 		})
 	}
 
+	if q.Offset > 0 {
+		items = items[min(q.Offset, len(items)):]
+	}
+
+	if q.Limit > 0 {
+		items = items[:min(q.Limit, len(items))]
+	}
+
 	return items, nil
 }
 
@@ -272,7 +280,8 @@ var StremThruIndexer = stremThruIndexer{
 			Title:     "StremThru",
 			Strapline: "StremThru Torznab",
 			Image:     "https://emojiapi.dev/api/v1/sparkles/256.png",
-			Version:   config.Version,
+			URL:       config.BaseURL.String(),
+			Version:   "1.3",
 		},
 		Searching: []CapsSearchingItem{
 			{
@@ -294,7 +303,7 @@ var StremThruIndexer = stremThruIndexer{
 		Categories: []CapsCategory{
 			{
 				Category: CategoryMovies,
-				Sub: []Category{
+				Subcat: []Category{
 					CategoryMovies_Foreign,
 					CategoryMovies_Other,
 					CategoryMovies_SD,
@@ -307,7 +316,7 @@ var StremThruIndexer = stremThruIndexer{
 			},
 			{
 				Category: CategoryTV,
-				Sub: []Category{
+				Subcat: []Category{
 					CategoryTV_WEBDL,
 					CategoryTV_FOREIGN,
 					CategoryTV_SD,

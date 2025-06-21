@@ -232,7 +232,7 @@ var dynamicListMetaById = map[string]dynamicListMeta{
 		Name:     "Anticipated",
 		ItemType: ItemTypeShow,
 	},
-	"shows/popoular": {
+	"shows/popular": {
 		Endpoint: "/shows/popular",
 		Name:     "Popular",
 		ItemType: ItemTypeShow,
@@ -273,7 +273,7 @@ var dynamicListMetaById = map[string]dynamicListMeta{
 		Name:     "Anticipated",
 		ItemType: ItemTypeMovie,
 	},
-	"movies/popoular": {
+	"movies/popular": {
 		Endpoint: "/movies/popular",
 		Name:     "Popular",
 		ItemType: ItemTypeMovie,
@@ -415,7 +415,7 @@ func (c APIClient) fetchDynamicListItems(params *fetchDynamicListItemsParams) (A
 		}
 
 		switch meta.Endpoint {
-		case dynamicListMetaById["movies/recommendations"].Endpoint:
+		case dynamicListMetaById["movies/popular"].Endpoint, dynamicListMetaById["movies/recommendations"].Endpoint:
 			response := listResponseData[ListItemMovie]{}
 			res, err = c.Request("GET", path, p, &response)
 			if err != nil {
@@ -429,7 +429,7 @@ func (c APIClient) fetchDynamicListItems(params *fetchDynamicListItemsParams) (A
 				items = append(items, item)
 			}
 
-		case dynamicListMetaById["shows/recommendations"].Endpoint:
+		case dynamicListMetaById["shows/popular"].Endpoint, dynamicListMetaById["shows/recommendations"].Endpoint:
 			response := listResponseData[ListItemShow]{}
 			res, err = c.Request("GET", path, p, &response)
 			if err != nil {
